@@ -56,7 +56,7 @@ module Nacsio
     )  
   end
 
-  def update_commandlog
+  def update_commandlog(progname = PROGRAM_NAME, options = ARGV)
   s=gets("---")
   s=gets("---") if s == "---"
   a=s.to_s.split("\n")
@@ -66,7 +66,7 @@ module Nacsio
   else
     a.shift
     ss = (["---\n"] + a).join("\n")
-    print CommandLog.from_yaml(ss).add_command.to_nacs
+    print CommandLog.from_yaml(ss).add_command(progname,options).to_nacs
   end
 end
 
