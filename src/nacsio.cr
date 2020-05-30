@@ -6,7 +6,7 @@
 # Copyright 2020- Jun Makino
 
 require "yaml"
-require "vector3"
+require "./vector3"
 
 struct Vector3    
   def initialize(ctx : YAML::ParseContext, node : YAML::Nodes::Node)
