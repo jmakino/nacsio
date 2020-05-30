@@ -24,17 +24,17 @@ module Nacsio
     def self.new
       CommandLog.from_yaml("")
     end            
-    def self.new(logstring : String)
+    def self.new(logstring : String, progname = PROGRAM_NAME, options = ARGV)
       c=CommandLog.new
-      c.command = ([PROGRAM_NAME]+ ARGV).join(" ")
+      c.command = ([progname]+ options).join(" ")
       c.log = logstring
       c
     end            
     def to_nacs    
       self.to_yaml.gsub(/---/, "--- !CommandLog")
     end
-    def add_command
-      @command += "\n"+([PROGRAM_NAME]+ ARGV).join(" ")
+    def add_command(progname = PROGRAM_NAME, options = ARGV)
+      @command += "\n"+([progname]+ options).join(" ")
       self
     end            
 
