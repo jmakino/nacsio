@@ -56,7 +56,8 @@ module Nacsio
     )  
   end
 
-  def update_commandlog(progname = PROGRAM_NAME, options = ARGV)
+  def update_commandlog(progname = PROGRAM_NAME, options = ARGV,
+                        of = STDOUT)
   s=gets("---")
   s=gets("---") if s == "---"
   a=s.to_s.split("\n")
@@ -66,7 +67,7 @@ module Nacsio
   else
     a.shift
     ss = (["---\n"] + a).join("\n")
-    print CommandLog.from_yaml(ss).add_command(progname,options).to_nacs
+    of.print CommandLog.from_yaml(ss).add_command(progname,options).to_nacs
   end
 end
 
@@ -96,7 +97,7 @@ end
       retval
     end
     
-    def print_particle
+    def print_particle(of = STDOUT)
       yy=@y.as_h.to_a
       ycore = YAML.parse(@p.to_yaml).as_h.to_a
       ycore.each{|core|
@@ -120,7 +121,7 @@ end
           }
         }
       }
-      print newstring.gsub(/---/, "--- !Particle")
+      of.print newstring.gsub(/---/, "--- !Particle")
     end      
   end
 end
