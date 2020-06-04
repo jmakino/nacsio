@@ -16,6 +16,7 @@ struct Vector3
 end
 
 module Nacsio
+  extend self
   class CommandLog
     YAML.mapping(
       command: {type: String, default: "",},
@@ -58,18 +59,33 @@ module Nacsio
 
   def update_commandlog(progname = PROGRAM_NAME, options = ARGV,
                         of = STDOUT)
-  s=gets("---")
-  s=gets("---") if s == "---"
-  a=s.to_s.split("\n")
-  a.pop if a[a.size-1]=="---"
-  if a[0] != " !CommandLog"
-    raise("Input line #{a[0]} not the start of Commandlog")
-  else
-    a.shift
-    ss = (["---\n"] + a).join("\n")
-    of.print CommandLog.from_yaml(ss).add_command(progname,options).to_nacs
+    s=gets("---")
+    s=gets("---") if s == "---"
+    a=s.to_s.split("\n")
+    a.pop if a[a.size-1]=="---"
+    if a[0] != " !CommandLog"
+      raise("Input line #{a[0]} not the start of Commandlog")
+    else
+      a.shift
+      ss = (["---\n"] + a).join("\n")
+      of.print CommandLog.from_yaml(ss).add_command(progname,options).to_nacs
+    end
   end
-end
+  def read_commandlog(ifile= STDIN)
+    c=CommandLog.new
+    s=ifile.gets("---")
+    s=ifile.gets("---") if s == "---"
+    a=s.to_s.split("\n")
+    a.pop if a[a.size-1]=="---"
+    if a[0] != " !CommandLog"
+      raise("Input line #{a[0]} not the start of Commandlog")
+    else
+      a.shift
+      ss = (["---\n"] + a).join("\n")
+      c= CommandLog.from_yaml(ss)
+    end
+    c
+  end
 
   class CP(T)
     property :p, y
@@ -77,8 +93,8 @@ end
       @p=p
       @y=y
     end
-    def self.read_particle
-      s=gets("---")
+    def self.read_particle(ifile = STDIN)
+      s=ifile.gets("---")
       retval=CP(T).new(T.from_yaml(""),YAML::Any.new(nil))
       if  s != nil
         a=s.to_s.split("\n")
@@ -96,7 +112,11 @@ end
       end
       retval
     end
-    
+
+    def print_yamlpart(of = STDOUT)
+      of.print @y.to_yaml.gsub(/---/, "--- !Particle")
+    end
+
     def print_particle(of = STDOUT)
       yy=@y.as_h.to_a
       ycore = YAML.parse(@p.to_yaml).as_h.to_a
@@ -124,4 +144,19 @@ end
       of.print newstring.gsub(/---/, "--- !Particle")
     end      
   end
+  
+  def repeat_on_snapshots(p = Particle.new, read_all = false)
+    sp= CP(typeof(p)).read_particle
+    no_time = (sp.y["t"] == nil )
+    while sp.y != nil
+      pp=[sp]
+      time = sp.y["t"].as_f  unless read_all
+      while (sp= CP(typeof(p)).read_particle).y != nil &&
+            (read_all || no_time || sp.y["t"].as_f == time)
+        pp.push sp
+      end
+      yield pp
+    end
+  end
 end
+
